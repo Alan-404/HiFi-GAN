@@ -139,7 +139,7 @@ class HiFiGANTrainer:
 
         _, y_ds_hat_g_, fmap_s_r, fmap_s_g = self.multi_scale_discriminator(labels, y_g_hat)
 
-        gen_mel = torch.tensor(self.processor.mel_spectrogram(y_g_hat.detach().squeeze(1).cpu().numpy())).to(self.device)
+        gen_mel = self.processor.log_mel_spectrogram(y_g_hat.cpu()).to(self.device)
 
         mel_loss = mel_spectrogram_loss(gen_mel, F.pad(inputs, pad=(0,1), mode='reflect'))
 
