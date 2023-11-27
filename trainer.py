@@ -45,8 +45,8 @@ class HiFiGANTrainer:
         self.val_loss = 0.0
         self.val_losses = []
 
-        self.optimizer_g = optim.AdamW(params=self.generator.parameters(), lr=lr)
-        self.optimizer_d = optim.AdamW(params=itertools.chain(
+        self.optimizer_g = optim.Adam(params=self.generator.parameters(), lr=lr)
+        self.optimizer_d = optim.Adam(params=itertools.chain(
             self.multi_period_discriminator.parameters(), self.multi_scale_discriminator.parameters()
         ), lr=lr)
 
@@ -213,8 +213,7 @@ class HiFiGANTrainer:
 
             print(f"Train Loss: {(epoch_loss):.4f}")
 
-            self.scheduler_g.step()
-            self.scheduler_d.step()
+            self.losses.append(epoch_loss)
 
             if val_dataset is not None:
                 self.validate(val_dataloader)

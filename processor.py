@@ -28,20 +28,23 @@ class HiFiGANProcessor:
 
     def spectral_normalize(self, x, C=1, clip_val=1e-5):
         return np.log(np.clip(x, a_min=clip_val, a_max=None) * C)
+    
+    def decompression_spectral_normalize(self, x, C=1):
+        return np.exp(x) / C
 
     def mel_spectrogram(self, signal: np.ndarray):
         stft = librosa.stft(y=signal, n_fft=self.fft_size, hop_length=self.hop_length, win_length=self.window_size, window='hann', center=True, pad_mode='reflect')
 
-        mel_spec = np.sqrt(np.power(np.abs(stft), 2) + (1e-9))
+        mangnitudes = np.sqrt(np.power(np.abs(stft), 2) + (1e-9))
 
-        mel_spec = np.dot(self.mel_filterbank, mel_spec)
+        mel_spec = np.dot(self.mel_filterbank, mangnitudes)
 
         if signal.ndim > 1:
             mel_spec = np.transpose(mel_spec, axes=(1, 0, 2))
 
-        mel_spec = self.spectral_normalize(mel_spec)
+        log_mel = self.spectral_normalize(mel_spec)
 
-        return mel_spec
+        return log_mel
     
     def __call__(self, signals: list, max_len: Optional[int] = None) -> Any:
         if max_len is None:

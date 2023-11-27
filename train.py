@@ -13,9 +13,7 @@ parser.add_argument("--config_path", type=str, default="./config.json")
 
 args = parser.parse_args()
 
-
 config = json.load(open(args.config_path, encoding='utf-8'))
-
 
 processor_config = config['processor_config']
 model_config = config['model_config']
