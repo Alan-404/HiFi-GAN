@@ -67,7 +67,7 @@ class HiFiGANTrainer:
     def get_batch(self, batch):
         mels, signals = self.processor(batch)
 
-        return torch.tensor(mels), torch.tensor(signals)
+        return mels, signals
 
     def summary(self):
         print("Generator: ")
@@ -218,7 +218,7 @@ class HiFiGANTrainer:
             if val_dataset is not None:
                 self.validate(val_dataloader)
 
-            print(f"DONE EPOCH {self.epoch + 1}")
+            print(f"DONE EPOCH {self.epoch + 1}\n")
 
             self.epoch += 1
         
