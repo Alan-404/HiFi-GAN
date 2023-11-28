@@ -3,6 +3,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import torch.optim as optim
+import torch.optim.lr_scheduler as lr_scheduler
 from torch.utils.tensorboard import SummaryWriter
 import torchsummary
 import itertools
@@ -17,17 +18,16 @@ from hifi_gan import Generator, MultiPeriodDiscriminator, MultiScaleDiscriminato
 from dataset import HiFiGANDataset
 from processor import HiFiGANProcessor
 
-from argparse import ArgumentParser
-
-parser = ArgumentParser()
-
-lr = 3e-3
+lr = 3e-4
 device = 'cuda'
 checkpoint_dir = "./checkpoints"
 checkpoint_step = None
 checkpoint = None
 num_epochs = 1
 tensorboard_dir = "./log_dir"
+
+save_step = 15000
+scheduler_step = 15000
 
 writer = SummaryWriter(log_dir=tensorboard_dir)
 
@@ -48,6 +48,9 @@ optimizer_g = optim.Adam(params=generator.parameters(), lr=lr)
 optimizer_d = optim.Adam(params=itertools.chain(
                 multi_period_discriminator.parameters(), multi_scale_discriminator.parameters()
         ), lr=lr)
+
+scheduler_g = lr_scheduler.CosineAnnealingLR(optimizer=optimizer_g, T_max=500000)
+scheduler_d = lr_scheduler.CosineAnnealingLR(optimizer=optimizer_d, T_max=500000)
 
 def get_batch(batch: list):
     mels, signals = processor(batch)
@@ -206,6 +209,13 @@ def finish_epoch(engine: Engine):
     writer.add_scalar("Discriminator Loss", engine.state.metrics['discriminator_loss'], engine.state.epoch)
     validator.run(val_dataloader, max_epochs=1)
 
+@trainer.on(Events.ITERATION_COMPLETED(every=(scheduler_step)))
+def update_scheduler(engine: Engine):
+    scheduler_d.step()
+    scheduler_g.step()
+
+trainer.add_event_handler(Events.ITERATION_COMPLETED(event_filter=save_step), checkpoint_manager)
+
 trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_manager)
 
 @validator.on(Events.EPOCH_COMPLETED)
@@ -218,5 +228,8 @@ validator.add_event_handler(Events.EPOCH_COMPLETED, early_stopping_handler)
 
 if checkpoint_step is not None and os.listdir(checkpoint_dir) != 0 and os.path.exists(checkpoint):
     Checkpoint.load_objects(to_load=to_save, checkpoint=torch.load(checkpoint))
+
+if trainer.state.max_epochs is not None:
+    num_epochs += trainer.state.max_epochs
 
 trainer.run(train_dataloader, max_epochs=num_epochs)
