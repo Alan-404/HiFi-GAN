@@ -37,8 +37,8 @@ class HiFiGANProcessor:
         signal = self.standard_normalize(signal)
         return signal
     
-    def standard_normalize(self, signal: torch.Tensor, eps: float = 1e-7):
-        return (signal - signal.mean()) / torch.sqrt(signal.var() + eps)
+    def standard_normalize(self, signal: torch.Tensor):
+        return (signal - signal.mean()) / signal.std()
     
     def spec_normalize(self, mel: torch.Tensor, clip_val: float = 1e-5, C: int = 1):
         return torch.log(torch.clamp(mel, min=clip_val) * C)
