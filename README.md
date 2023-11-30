@@ -1,5 +1,7 @@
 # (TTS) HiFi GAN Model: Mel - Spectrogram to Waveform
 ## Model Architecture
+<a href="https://arxiv.org/pdf/2010.05646.pdf">Link Paper</a>
+
 <img src="./assets/model.png"/>
 
 ## Folder Structure
@@ -29,5 +31,5 @@ pip install -r requirements.txt
 
 ## Train Model
 ```
-python3 train.py --config_path ./config/config.json
+python3 train.py
 ```
