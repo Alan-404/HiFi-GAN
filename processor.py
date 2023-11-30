@@ -1,5 +1,4 @@
 from typing import Any, Optional
-import librosa
 import numpy as np
 import torch
 from pydub import AudioSegment
