@@ -4,7 +4,6 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
-from torch.utils.tensorboard import SummaryWriter
 import torchsummary
 import itertools
 
@@ -18,6 +17,10 @@ from hifi_gan import Generator, MultiPeriodDiscriminator, MultiScaleDiscriminato
 from dataset import HiFiGANDataset
 from processor import HiFiGANProcessor
 
+import wandb
+
+wandb.init(project="HiFi_GAN - Text to Speech", name='trind18')
+
 lr = 3e-4
 device = 'cuda'
 checkpoint_dir = "./checkpoints"
@@ -28,8 +31,6 @@ tensorboard_dir = "./log_dir"
 
 save_step = 15000
 scheduler_step = 15000
-
-writer = SummaryWriter(log_dir=tensorboard_dir)
 
 processor = HiFiGANProcessor()
 
@@ -160,13 +161,20 @@ def early_stopping_condition(engine):
     return -(engine.state.metrics['generator_loss'] + engine.state.metrics['discriminator_loss'])
     
 trainer = Engine(train_step)
-RunningAverage(output_transform=lambda x: x[0]).attach(trainer, 'generator_loss')
-RunningAverage(output_transform=lambda x: x[1]).attach(trainer, 'disciminator_loss')
+train_generator_loss = RunningAverage(output_transform=lambda x: x[0])
+train_generator_loss.attach(trainer, 'generator_loss')
+
+train_discriminator_loss = RunningAverage(output_transform=lambda x: x[1])
+train_discriminator_loss.attach(trainer, 'disciminator_loss')
 ProgressBar().attach(trainer)
 
 validator = Engine(val_step)
-RunningAverage(output_transform=lambda x: x[0]).attach(validator, 'generator_loss')
-RunningAverage(output_transform=lambda x: x[1]).attach(validator, 'disciminator_loss')
+val_generator_loss = RunningAverage(output_transform=lambda x: x[0])
+val_generator_loss.attach(validator, 'generator_loss')
+
+val_discriminator_loss = RunningAverage(output_transform=lambda x: x[1])
+val_discriminator_loss.attach(validator, 'disciminator_loss')
+
 ProgressBar().attach(validator)
 early_stopping_handler = EarlyStopping(patience=10, score_function=early_stopping_condition, trainer=trainer)
 
@@ -200,13 +208,16 @@ def start_training(engine: Engine):
 
 @trainer.on(Events.EPOCH_STARTED)
 def start_epoch(engine: Engine):
+    train_generator_loss.reset()
+    train_discriminator_loss.reset()
+    val_generator_loss.reset()
+    val_discriminator_loss.reset()
     print(f"============ {engine.state.epoch} =============")
 
 @trainer.on(Events.EPOCH_COMPLETED)
 def finish_epoch(engine: Engine):
     print(f"Train: Generator Loss {(engine.state.metrics['generator_loss']):.4f} Discriminator Loss {(engine.state.metrics['discriminator_loss']):.4f}")
-    writer.add_scalar("Generator Loss", engine.state.metrics['generator_loss'], engine.state.epoch)
-    writer.add_scalar("Discriminator Loss", engine.state.metrics['discriminator_loss'], engine.state.epoch)
+    wandb.log({'train_generator_loss': engine.state.metrics['generator_loss'], "train_discriminator_loss": engine.state.metrics['discriminator_loss']})
     validator.run(val_dataloader, max_epochs=1)
 
 @trainer.on(Events.ITERATION_COMPLETED(every=(scheduler_step)))
@@ -221,8 +232,7 @@ trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_manager)
 @validator.on(Events.EPOCH_COMPLETED)
 def finish_validating(engine: Engine):
     print(f"Validation: Generator Loss {(engine.state.metrics['generator_loss']):.4f} Discriminator Loss {(engine.state.metrics['discriminator_loss']):.4f}")
-    writer.add_scalar("Generator Loss", engine.state.metrics['generator_loss'], trainer.state.epoch)
-    writer.add_scalar("Generator Loss", engine.state.metrics['discriminator_loss'], trainer.state.epoch)
+    wandb.log({'val_generator_loss': engine.state.metrics['generator_loss'], "val_discriminator_loss": engine.state.metrics['discriminator_loss']})
 
 validator.add_event_handler(Events.EPOCH_COMPLETED, early_stopping_handler)
 
