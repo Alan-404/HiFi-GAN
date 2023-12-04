@@ -6,3 +6,5 @@
 /test.py
 /venv
 /wandb
+/datasets
+/checkpoints

@@ -206,15 +206,15 @@ def val_step(engine: Engine, mels: torch.Tensor, labels: torch.Tensor):
     with torch.no_grad():
         outputs = generator(mels)
 
-    y_dp_hat_r, y_dp_hat_g, fmap_p_r, fmap_p_g = multi_period_discriminator(labels, outputs.detach())
+    y_dp_hat_r, y_dp_hat_g, fmap_p_r, fmap_p_g = multi_period_discriminator(labels, outputs)
     loss_disc_p = discriminator_loss(y_dp_hat_r, y_dp_hat_g)
 
-    y_ds_hat_r, y_ds_hat_g, fmap_s_r, fmap_s_g = multi_scale_discriminator(labels, outputs.detach())
+    y_ds_hat_r, y_ds_hat_g, fmap_s_r, fmap_s_g = multi_scale_discriminator(labels, outputs)
     loss_disc_s = discriminator_loss(y_ds_hat_r, y_ds_hat_g)
 
     loss_disc_all = loss_disc_p + loss_disc_s
 
-    gen_mel = torch.tensor(processor.log_mel_spectrogram(outputs.cpu())).to(device)
+    gen_mel = processor.log_mel_spectrogram(outputs.cpu()).to(device)
 
     loss_fm_p = feature_loss(fmap_p_r, fmap_p_g)
     loss_fm_s = feature_loss(fmap_s_r, fmap_s_g)
@@ -300,7 +300,7 @@ def finish_epoch(engine: Engine):
             'multi_period_discriminator_gradient_norm': torch.nn.utils.clip_grad.clip_grad_norm_(multi_period_discriminator.parameters(), max_norm=float('-inf')).item(),
             'multi_scale_discriminator_gradient_norm': torch.nn.utils.clip_grad.clip_grad_norm_(multi_scale_discriminator.parameters(), max_norm=float('-inf')).item(),
             'training_time': engine.state.times['EPOCH_COMPLETED']
-        })
+        }, engine.state.epoch)
     scheduler_g.step()
     scheduler_d.step()
     if args.use_validation:
@@ -317,7 +317,7 @@ def finish_validating(engine: Engine):
         "val_discriminator_loss": engine.state.metrics['discriminator_loss'],
         'early_stopping_patience': early_stopping_handler.counter,
         'val_time': engine.state.times['EPOCH_COMPLETED']
-    })
+    }, engine.state.epoch)
 
 validator.add_event_handler(Events.EPOCH_COMPLETED, early_stopping_handler)
 

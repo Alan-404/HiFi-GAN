@@ -22,14 +22,14 @@
 
 ## Setup Environment
 ```
-git clone https://git.cads.live/trind18/hifi-gan.git
-cd hifi-gan
-python3 -m venv tts
-source tts/bin/activate
+git clone https://github.com/Alan-404/HiFi-GAN.git
+cd HiFi-GAN
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
 ## Train Model
 ```
-python3 train.py
+CUDA_VISIBLE_DEVICES={index} python3 train.py --device cuda --batch_size {train_batch_size} --val_batch_size {val_batch_size} --num_epochs {number_of_epochs}
 ```
