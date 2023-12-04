@@ -83,7 +83,7 @@ def find_latest_checkpoint(checkpoints: list):
         if latest < index:
             latest = index
     return latest
-if os.path.exists(args.checkpoint) and os.listdir(args.checkpoint) != 0:
+if os.path.exists(args.checkpoint) and len(os.listdir(args.checkpoint)) != 0:
     if args.checkpoint_step is None:
         args.checkpoint_step = find_latest_checkpoint(os.listdir(args.checkpoint))
     checkpoint = f"{args.checkpoint}/checkpoint_{args.checkpoint_step}.pt"
@@ -292,7 +292,7 @@ def start_epoch(engine: Engine):
     val_generator_loss.reset()
     val_discriminator_loss.reset()
     
-    print(f"============ {engine.state.epoch} =============")
+    print(f"============ Epoch {engine.state.epoch} =============")
 
 @trainer.on(Events.EPOCH_COMPLETED)
 def finish_epoch(engine: Engine):
@@ -311,6 +311,8 @@ def finish_epoch(engine: Engine):
     scheduler_d.step()
     if args.use_validation:
         validator.run(val_dataloader, max_epochs=1)
+
+    print(f"============ Done Epoch {engine.state.epoch} =============\n")
 
 trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_manager)
 trainer.add_event_handler(Events.COMPLETED, checkpoint_manager)
