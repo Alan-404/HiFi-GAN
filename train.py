@@ -188,9 +188,7 @@ def train_step(engine: Engine, batch: list):
 
     _, y_ds_hat_g_, fmap_s_r, fmap_s_g = multi_scale_discriminator(labels, y_g_hat)
 
-    gen_mel = processor.log_mel_spectrogram(y_g_hat.cpu()).to(device)
-
-    print(gen_mel.shape)
+    gen_mel = processor.log_mel_spectrogram(y_g_hat.squeeze(1).cpu()).to(device)
 
     mel_loss = mel_spectrogram_loss(gen_mel, F.pad(inputs, pad=(0,1), mode='reflect'))
 
