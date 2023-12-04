@@ -161,7 +161,10 @@ def generator_loss(disc_outputs):
 
     return loss
 
-def train_step(engine: Engine, inputs: torch.Tensor, labels: torch.Tensor):
+def train_step(engine: Engine, batch: list):
+    inputs = batch[0].to(device)
+    labels = batch[1].to(device)
+    
     labels = labels.unsqueeze(1)
     optimizer_d.zero_grad()
 
