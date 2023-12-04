@@ -165,9 +165,6 @@ def train_step(engine: Engine, batch: list):
     inputs = batch[0].to(device)
     labels = batch[1].to(device)
 
-    print(inputs.shape)
-    print(labels.shape)
-
     labels = labels.unsqueeze(1)
     optimizer_d.zero_grad()
 
@@ -192,6 +189,8 @@ def train_step(engine: Engine, batch: list):
     _, y_ds_hat_g_, fmap_s_r, fmap_s_g = multi_scale_discriminator(labels, y_g_hat)
 
     gen_mel = processor.log_mel_spectrogram(y_g_hat.cpu()).to(device)
+
+    print(gen_mel.shape)
 
     mel_loss = mel_spectrogram_loss(gen_mel, F.pad(inputs, pad=(0,1), mode='reflect'))
 
