@@ -164,7 +164,7 @@ def generator_loss(disc_outputs):
 def train_step(engine: Engine, batch: list):
     inputs = batch[0].to(device)
     labels = batch[1].to(device)
-    
+
     labels = labels.unsqueeze(1)
     optimizer_d.zero_grad()
 
@@ -205,7 +205,10 @@ def train_step(engine: Engine, batch: list):
 
     return final_loss.item(),  loss_disc_all.item()
 
-def val_step(engine: Engine, mels: torch.Tensor, labels: torch.Tensor):
+def val_step(engine: Engine, batch: list):
+    mels = batch[0].to(device)
+    labels = batch[1].to(device)
+
     with torch.no_grad():
         outputs = generator(mels)
 
