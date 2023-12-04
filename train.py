@@ -111,9 +111,9 @@ generator = Generator(
     upsample_initial_channel=args.upsample_initial_channel,
     resblock_kernel_sizes=args.resblock_kernel_sizes,
     resblock_dilation_sizes=args.resblock_dilation_sizes
-)
-multi_period_discriminator = MultiPeriodDiscriminator()
-multi_scale_discriminator = MultiScaleDiscriminator()
+).to(device)
+multi_period_discriminator = MultiPeriodDiscriminator().to(device)
+multi_scale_discriminator = MultiScaleDiscriminator().to(device)
 
 optimizer_g = optim.Adam(params=generator.parameters(), lr=args.lr)
 optimizer_d = optim.Adam(params=itertools.chain(
