@@ -165,6 +165,9 @@ def train_step(engine: Engine, batch: list):
     inputs = batch[0].to(device)
     labels = batch[1].to(device)
 
+    print(inputs.shape)
+    print(labels.shape)
+
     labels = labels.unsqueeze(1)
     optimizer_d.zero_grad()
 
