@@ -303,7 +303,7 @@ def finish_epoch(engine: Engine):
         })
     scheduler_g.step()
     scheduler_d.step()
-    if args.user_validation:
+    if args.use_validation:
         validator.run(val_dataloader, max_epochs=1)
 
 trainer.add_event_handler(Events.EPOCH_COMPLETED, checkpoint_manager)
