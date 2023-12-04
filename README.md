@@ -15,10 +15,15 @@
     train.py                    # Training File
     trainer.py                  # Trainer for Model
 
-## Setup Dataset
+## Dataset
 | Name    | Link |
 | --------- | ------- |
 | InfoRE Tech 16h     | https://huggingface.co/datasets/ntt123/infore/resolve/main/infore_16k_denoised.zip        |
+
+## Dataset Setup
+```
+python3 create_dataset.py
+```
 
 ## Setup Environment
 ```
