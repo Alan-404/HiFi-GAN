@@ -30,13 +30,13 @@ class HiFiGANProcessor:
             n_mels=n_mel_channels
         )
 
-    def load_audio(self, path: str):
+    def load_audio(self, path: str) -> torch.Tensor:
         audio = AudioSegment.from_file(path).set_frame_rate(self.sample_rate).get_array_of_samples()
         signal = torch.tensor(audio) / MAX_AUDIO_VALUE
         signal = self.standard_normalize(signal)
         return signal
     
-    def standard_normalize(self, signal: torch.Tensor):
+    def standard_normalize(self, signal: torch.Tensor) -> torch.Tensor:
         return (signal - signal.mean()) / torch.sqrt(signal.var() + 1e-7)
     
     def spec_normalize(self, mel: torch.Tensor, clip_val: float = 1e-5, C: int = 1):
@@ -49,7 +49,7 @@ class HiFiGANProcessor:
 
         return log_mel
     
-    def __call__(self, signals: list, max_len: Optional[int] = None) -> Any:
+    def __call__(self, signals: [torch.Tensor], max_len: Optional[int] = None) -> [torch.Tensor, torch.Tensor]:
         if max_len is None:
             max_len = np.max([len(signal) for signal in signals])
 
